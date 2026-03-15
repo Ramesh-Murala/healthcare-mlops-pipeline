@@ -1,0 +1,12 @@
+2026-03-14 21:45:36,121 - INFO - Starting PHI anonymization - Input: data/raw/member_claims.csv
+2026-03-14 21:45:36,136 - INFO - Loaded 1000 member records
+2026-03-14 21:45:36,144 - INFO - Removed zip_code (PHI)
+2026-03-14 21:45:36,146 - INFO - Hashed all member IDs
+2026-03-14 21:45:36,154 - INFO - Anonymized data saved to data/processed/member_claims_anonymized.csv
+2026-03-14 21:45:36,154 - INFO - Anonymization complete - 1000 records processed
+2026-03-14 21:46:07,108 - INFO - Starting PHI anonymization - Input: data/raw/member_claims.csv
+2026-03-14 21:46:07,115 - INFO - Loaded 1000 member records
+2026-03-14 21:46:07,118 - INFO - Removed zip_code (PHI)
+2026-03-14 21:46:07,121 - INFO - Hashed all member IDs
+2026-03-14 21:46:07,128 - INFO - Anonymized data saved to data/processed/member_claims_anonymized.csv
+2026-03-14 21:46:07,129 - INFO - Anonymization complete - 1000 records processed

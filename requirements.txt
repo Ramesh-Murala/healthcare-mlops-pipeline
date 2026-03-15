@@ -1,0 +1,9 @@
+pandas
+numpy
+faker
+scikit-learn
+mlflow
+great_expectations
+fastapi
+uvicorn
+pytest
