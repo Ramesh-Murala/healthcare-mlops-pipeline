@@ -19,7 +19,7 @@ jobs:
 
       - name: Install dependencies
         run: |
-          pip install pandas numpy scikit-learn fastapi uvicorn pydantic pytest
+          pip install pandas numpy scikit-learn mlflow fastapi uvicorn pydantic pytest faker
 
       - name: Run data generation
         run: python src/generate_data.py
