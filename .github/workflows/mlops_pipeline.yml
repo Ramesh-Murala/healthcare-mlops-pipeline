@@ -1,0 +1,46 @@
+name: MLOps CI/CD Pipeline
+
+on:
+  push:
+    branches: [master]
+
+jobs:
+  test:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v3
+
+      - name: Set up Python
+        uses: actions/setup-python@v4
+        with:
+          python-version: "3.10"
+
+      - name: Install dependencies
+        run: |
+          pip install pandas numpy scikit-learn fastapi uvicorn pydantic pytest
+
+      - name: Run data generation
+        run: python src/generate_data.py
+
+      - name: Run PHI anonymization
+        run: python src/anonymize.py
+
+      - name: Run feature engineering
+        run: python src/features.py
+
+      - name: Run data validation
+        run: python src/validate.py
+
+      - name: Build Docker image
+        run: docker build -t healthcare-risk-api -f api/Dockerfile .
+
+      - name: Run health check
+        run: |
+          docker run -d -p 8000:8000 --name test-container healthcare-risk-api
+          sleep 5
+          curl http://localhost:8000/health
+
+      - name: Cleanup
+        run: docker stop test-container
