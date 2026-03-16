@@ -1,0 +1,23 @@
+artifact_path: file:C:/Users/venka/healthcare-mlops-pipeline/mlruns/1/models/m-2d214c8a26744e4d9a0a4a592c7af573/artifacts
+flavors:
+  python_function:
+    env:
+      conda: conda.yaml
+      virtualenv: python_env.yaml
+    loader_module: mlflow.sklearn
+    model_path: model.pkl
+    predict_fn: predict
+    python_version: 3.14.3
+  sklearn:
+    code: null
+    pickled_model: model.pkl
+    serialization_format: cloudpickle
+    sklearn_version: 1.8.0
+    skops_trusted_types: null
+mlflow_version: 3.10.1
+model_id: m-2d214c8a26744e4d9a0a4a592c7af573
+model_size_bytes: 1733394
+model_uuid: m-2d214c8a26744e4d9a0a4a592c7af573
+prompts: null
+run_id: 75bc04dc96574d41a80c0ccf85ca78bd
+utc_time_created: '2026-03-16 01:22:43.537723'
