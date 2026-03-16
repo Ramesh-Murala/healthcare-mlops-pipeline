@@ -7,8 +7,7 @@ import uvicorn
 import os
 
 # Point MLflow to the correct tracking location
-mlflow.set_tracking_uri("sqlite:///" + os.path.abspath("../mlflow.db"))
-
+mlflow.set_tracking_uri("sqlite:///mlflow.db")
 app = FastAPI(title="Healthcare Risk Prediction API", version="1.0")
 
 # Load model from MLflow
