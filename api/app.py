@@ -1,21 +1,21 @@
 import pandas as pd
-import mlflow.sklearn
-import mlflow
+import pickle
 from fastapi import FastAPI
 from pydantic import BaseModel
 import uvicorn
-import os
 
-# Point MLflow to the correct tracking location
-mlflow.set_tracking_uri("sqlite:///mlflow.db")
 app = FastAPI(title="Healthcare Risk Prediction API", version="1.0")
 
-# Load model from MLflow
-model = mlflow.sklearn.load_model("models:/hospitalization_risk/1")
+# Load model from pickle file
+with open("model.pkl", "rb") as f:
+    model = pickle.load(f)
+
+print("✅ Model loaded successfully")
+
 # Define input schema
 class MemberData(BaseModel):
     age: int
-    gender: int  # 1=M, 0=F
+    gender: int
     claim_count_90days: int
     er_visits_6months: int
     total_claim_cost: float
