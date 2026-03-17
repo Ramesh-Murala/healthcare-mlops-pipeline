@@ -39,7 +39,7 @@ jobs:
       - name: Run health check
         run: |
           docker run -d -p 8000:8000 --name test-container healthcare-risk-api
-          sleep 5
+          sleep 15
           curl http://localhost:8000/health
 
       - name: Cleanup
