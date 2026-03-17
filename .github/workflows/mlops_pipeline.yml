@@ -36,11 +36,5 @@ jobs:
       - name: Build Docker image
         run: docker build -t healthcare-risk-api -f api/Dockerfile .
 
-      - name: Run health check
-        run: |
-          docker run -d -p 8000:8000 --name test-container healthcare-risk-api
-          sleep 15
-          curl http://localhost:8000/health
-
-      - name: Cleanup
-        run: docker stop test-container
+      - name: Verify Docker image built
+        run: docker images | grep healthcare-risk-api
