@@ -1,2 +1,13 @@
-monitoring/prometheus-data/
+__pycache__/
+*.py[cod]
+.venv/
+.pytest_cache/
+*.db
+*.pkl
+mlruns/
+mlartifacts/
+data/raw/
+data/processed/
 logs/
+monitoring/prometheus-data/
+.env
