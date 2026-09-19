@@ -1,0 +1,7 @@
+{
+  "title": "healthcare-mlops-pipeline",
+  "mode": "Captured output replay | synthetic model; local API",
+  "request_label": "POST /predict",
+  "response_label": "HTTP 200 | response body",
+  "source_commit": "78f4e5fcf7259a61cd623afe4c5b9018a18d9913"
+}

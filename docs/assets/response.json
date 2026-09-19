@@ -1,0 +1,7 @@
+{
+  "risk_score": 0.0,
+  "risk_label": 0,
+  "risk_category": "Low Risk",
+  "scope": "Synthetic demonstration; not for clinical decisions",
+  "latency_ms": 9.31
+}
