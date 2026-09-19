@@ -1,0 +1,17 @@
+{
+  "age": 32,
+  "gender": 1,
+  "claim_count_90days": 3,
+  "er_visits_6months": 0,
+  "total_claim_cost": 2500.0,
+  "medication_count": 2,
+  "has_diabetes": 0,
+  "has_hypertension": 0,
+  "has_copd": 0,
+  "high_er_usage": 0,
+  "high_claim_frequency": 0,
+  "high_cost_member": 0,
+  "multiple_chronic": 0,
+  "high_medication_burden": 0,
+  "risk_indicator": 0
+}

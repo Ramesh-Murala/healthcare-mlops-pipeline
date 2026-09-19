@@ -1,8 +1,91 @@
 # Healthcare MLOps Simulation
 
+[![CI](https://github.com/Ramesh-Murala/healthcare-mlops-pipeline/actions/workflows/mlops_pipeline.yml/badge.svg?branch=master)](https://github.com/Ramesh-Murala/healthcare-mlops-pipeline/actions/workflows/mlops_pipeline.yml)
+
 A local MLOps demonstration using **synthetic insurance-claims data**: generate records, transform features, compare models, serve predictions, expose Prometheus metrics, and run batch scoring.
 
 This is an independent portfolio simulation. It is not affiliated with an insurer, clinically validated, deployed to production, or certified as HIPAA compliant. Do not use it for patient-care or insurance decisions.
+
+
+## Visual proof
+
+### Architecture
+
+```mermaid
+flowchart TD
+  A["Seeded synthetic claims"] --> B["Transform + validate features"]
+  B --> C["Six model configurations"]
+  C --> D["MLflow + evaluation report"]
+  C --> E["Fixed baseline model artifact"]
+  E --> F["FastAPI /predict"]
+  E --> G["Batch scoring"]
+  F --> H["Prometheus /metrics"]
+  G --> I["CSV + run summary"]
+```
+
+### Request and response replay
+
+![Captured request and response replay](docs/assets/api-demo.gif)
+
+This GIF renders actual captured JSON as an animated transcript; it is not a screen recording. POST `/predict` using FastAPI TestClient and the locally trained synthetic random-forest baseline. The request supplies precomputed features. Any `latency_ms` is a single local sample, not a performance benchmark.
+
+### Evaluation results
+
+| Configuration | Accuracy | F1 | ROC-AUC |
+|---|---:|---:|---:|
+| random forest baseline | 0.885 | 0.914 | 0.955 |
+| gradient boosting baseline | 0.920 | 0.941 | 0.965 |
+| random forest shallow | 0.920 | 0.941 | 0.961 |
+| scaled logistic regression | 0.900 | 0.928 | 0.959 |
+| gradient boosting slow | 0.925 | 0.944 | 0.967 |
+| random forest depth7 | 0.920 | 0.940 | 0.960 |
+
+[Recorded evaluation](reports/synthetic_evaluation.json): 800 training and 200 held-out synthetic rows, seed 42. All configurations predict the same rule-generated label. The exported random-forest baseline was selected in advance. These scores do not establish clinical performance.
+
+### Sample request
+
+```json
+{
+  "age": 32,
+  "gender": 1,
+  "claim_count_90days": 3,
+  "er_visits_6months": 0,
+  "total_claim_cost": 2500.0,
+  "medication_count": 2,
+  "has_diabetes": 0,
+  "has_hypertension": 0,
+  "has_copd": 0,
+  "high_er_usage": 0,
+  "high_claim_frequency": 0,
+  "high_cost_member": 0,
+  "multiple_chronic": 0,
+  "high_medication_burden": 0,
+  "risk_indicator": 0
+}
+```
+
+### Captured response
+
+```json
+{
+  "risk_score": 0.0,
+  "risk_label": 0,
+  "risk_category": "Low Risk",
+  "scope": "Synthetic demonstration; not for clinical decisions",
+  "latency_ms": 9.31
+}
+```
+
+Reproduce the capture and GIF from the repository root:
+
+```bash
+pip install -r requirements.txt pillow
+# First run the data/training steps below to create api/model.pkl.
+python docs/capture_demo.py
+python docs/render_replay.py
+```
+
+The renderer needs DejaVu Sans Mono (on Debian/Ubuntu: `fonts-dejavu-core`). [Capture metadata](docs/assets/capture.json) records the source revision. [Request JSON](docs/assets/request.json) and [response JSON](docs/assets/response.json) are available separately.
 
 ## What is implemented
 
