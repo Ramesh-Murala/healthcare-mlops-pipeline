@@ -1,10 +1,14 @@
 # Healthcare MLOps Simulation
 
 [![CI](https://github.com/Ramesh-Murala/healthcare-mlops-pipeline/actions/workflows/mlops_pipeline.yml/badge.svg?branch=master)](https://github.com/Ramesh-Murala/healthcare-mlops-pipeline/actions/workflows/mlops_pipeline.yml)
+[![License: MIT](https://img.shields.io/badge/License-MIT-blue.svg)](LICENSE)
+![Python](https://img.shields.io/badge/python-3.11%20%7C%203.12-blue.svg)
 
-A local MLOps demonstration using **synthetic insurance-claims data**: generate records, transform features, compare models, serve predictions, expose Prometheus metrics, and run batch scoring.
+An end-to-end MLOps pipeline on **synthetic insurance-claims data**: seeded data generation, feature transformation and validation, six model configurations compared in one experiment, MLflow tracking, FastAPI serving with Prometheus metrics, and batch scoring.
 
-This is an independent portfolio simulation. It is not affiliated with an insurer, clinically validated, deployed to production, or certified as HIPAA compliant. Do not use it for patient-care or insurance decisions.
+**Measured on the held-out synthetic split (800 train / 200 test, seed 42):** best configuration 0.925 accuracy, 0.944 F1, 0.967 ROC-AUC; the exported random-forest baseline scores 0.885 / 0.914 / 0.955. CI regenerates the data, retrains, runs the batch job, executes the tests, and builds the container image on every push.
+
+**Scope:** an independent portfolio simulation. It is not affiliated with an insurer, clinically validated, deployed to production, or certified as HIPAA compliant. The labels are rule-generated, so strong held-out scores mainly show that the models recover those rules. Do not use it for patient-care or insurance decisions.
 
 
 ## Visual proof
