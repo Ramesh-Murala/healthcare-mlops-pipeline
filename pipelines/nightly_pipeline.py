@@ -14,7 +14,7 @@ logging.basicConfig(
 )
 
 print("=" * 60)
-print(f"  BCBS Nightly Risk Scoring Pipeline")
+print(f"  Synthetic Risk Scoring Pipeline")
 print(f"  Run Date: {datetime.now().strftime('%Y-%m-%d %H:%M:%S')}")
 print("=" * 60)
 
@@ -139,10 +139,10 @@ def task_run_inference(df):
     return df
 
 # ─────────────────────────────────────────
-# TASK 6 - Save Results & Send Alert
+# TASK 6 - Save Results and Summary
 # ─────────────────────────────────────────
 def task_save_and_notify(df):
-    print("\n[Task 6/6] Saving results and sending notification...")
+    print("\n[Task 6/6] Saving results and run summary...")
     logging.info("Task 6 started - Save results")
     
     os.makedirs("data/processed", exist_ok=True)
@@ -202,6 +202,7 @@ def run_pipeline():
     except Exception as e:
         logging.error(f"Pipeline failed: {str(e)}")
         print(f"\n❌ PIPELINE FAILED: {str(e)}")
+        raise
 
 if __name__ == "__main__":
     run_pipeline()

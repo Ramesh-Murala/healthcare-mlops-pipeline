@@ -1,7 +1,9 @@
 import pandas as pd
 import pickle
+import os
+from pathlib import Path
 from fastapi import FastAPI
-from pydantic import BaseModel
+from pydantic import BaseModel, Field
 import uvicorn
 from prometheus_client import Counter, Histogram, Gauge, generate_latest, REGISTRY
 from fastapi.responses import PlainTextResponse
@@ -10,7 +12,8 @@ import time
 app = FastAPI(title="Healthcare Risk Prediction API", version="1.0")
 
 # Load model from pickle file
-with open("model.pkl", "rb") as f:
+MODEL_PATH = Path(os.getenv("MODEL_PATH", str(Path(__file__).with_name("model.pkl"))))
+with MODEL_PATH.open("rb") as f:
     model = pickle.load(f)
 
 print("✅ Model loaded successfully")
@@ -55,21 +58,21 @@ low_risk_count = 0
 
 # Define input schema
 class MemberData(BaseModel):
-    age: int
-    gender: int
-    claim_count_90days: int
-    er_visits_6months: int
-    total_claim_cost: float
-    medication_count: int
-    has_diabetes: int
-    has_hypertension: int
-    has_copd: int
-    high_er_usage: int
-    high_claim_frequency: int
-    high_cost_member: int
-    multiple_chronic: int
-    high_medication_burden: int
-    risk_indicator: int
+    age: int = Field(ge=18, le=85)
+    gender: int = Field(ge=0, le=1)
+    claim_count_90days: int = Field(ge=0)
+    er_visits_6months: int = Field(ge=0)
+    total_claim_cost: float = Field(ge=0, allow_inf_nan=False)
+    medication_count: int = Field(ge=0)
+    has_diabetes: int = Field(ge=0, le=1)
+    has_hypertension: int = Field(ge=0, le=1)
+    has_copd: int = Field(ge=0, le=1)
+    high_er_usage: int = Field(ge=0, le=1)
+    high_claim_frequency: int = Field(ge=0, le=1)
+    high_cost_member: int = Field(ge=0, le=1)
+    multiple_chronic: int = Field(ge=0, le=1)
+    high_medication_burden: int = Field(ge=0, le=1)
+    risk_indicator: int = Field(ge=0)
 
 @app.get("/")
 def home():
@@ -85,7 +88,7 @@ def predict(data: MemberData):
 
     start_time = time.time()
 
-    input_df = pd.DataFrame([data.dict()])
+    input_df = pd.DataFrame([data.model_dump()])
     risk_score = model.predict_proba(input_df)[0][1]
     risk_label = int(model.predict(input_df)[0])
 
@@ -107,7 +110,7 @@ def predict(data: MemberData):
         "risk_score": round(float(risk_score), 4),
         "risk_label": risk_label,
         "risk_category": "High Risk" if risk_label == 1 else "Low Risk",
-        "recommendation": "Enroll in care management program" if risk_label == 1 else "Routine monitoring",
+        "scope": "Synthetic demonstration; not for clinical decisions",
         "latency_ms": round(latency * 1000, 2)
     }
 

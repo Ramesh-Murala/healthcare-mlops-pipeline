@@ -4,6 +4,7 @@ from faker import Faker
 import random
 import os
 
+Faker.seed(42)
 fake = Faker()
 np.random.seed(42)
 random.seed(42)

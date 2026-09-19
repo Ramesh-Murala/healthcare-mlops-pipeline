@@ -1,0 +1,44 @@
+{
+  "scope": "One rule-generated synthetic target; six model configurations, not six clinical outcomes.",
+  "environment": {
+    "python": "3.12.14",
+    "scikit-learn": "1.8.0",
+    "mlflow": "3.16.1"
+  },
+  "seed": 42,
+  "train_rows": 800,
+  "test_rows": 200,
+  "exported_configuration": "random_forest_baseline",
+  "models": {
+    "random_forest_baseline": {
+      "accuracy": 0.885,
+      "f1": 0.9144981412639405,
+      "roc_auc": 0.9548140424052833
+    },
+    "gradient_boosting_baseline": {
+      "accuracy": 0.92,
+      "f1": 0.9407407407407408,
+      "roc_auc": 0.964778125362067
+    },
+    "random_forest_shallow": {
+      "accuracy": 0.92,
+      "f1": 0.9407407407407408,
+      "roc_auc": 0.9611864210404357
+    },
+    "scaled_logistic_regression": {
+      "accuracy": 0.9,
+      "f1": 0.9280575539568345,
+      "roc_auc": 0.9588691924458348
+    },
+    "gradient_boosting_slow": {
+      "accuracy": 0.925,
+      "f1": 0.9442379182156134,
+      "roc_auc": 0.9670953539566678
+    },
+    "random_forest_depth7": {
+      "accuracy": 0.92,
+      "f1": 0.9398496240601504,
+      "roc_auc": 0.959564361024215
+    }
+  }
+}

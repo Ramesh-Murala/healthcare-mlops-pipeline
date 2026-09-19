@@ -1,40 +1,33 @@
-name: MLOps CI/CD Pipeline
-
-on:
-  push:
-    branches: [master]
-
+name: Synthetic pipeline and API checks
+on: [push, pull_request]
 jobs:
   test:
     runs-on: ubuntu-latest
-
     steps:
-      - name: Checkout code
-        uses: actions/checkout@v3
-
-      - name: Set up Python
-        uses: actions/setup-python@v4
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
         with:
-          python-version: "3.10"
-
-      - name: Install dependencies
+          python-version: "3.11"
+          cache: pip
+      - run: pip install -r requirements.txt
+      - run: python src/generate_data.py
+      - run: python src/anonymize.py
+      - run: python src/features.py
+      - run: python src/validate.py
+      - run: python src/train.py
+      - run: python pipelines/nightly_pipeline.py
+      - run: python -m pytest -q
+      - run: docker build -t healthcare-risk-api -f api/Dockerfile .
+      - name: Verify container health
         run: |
-          pip install pandas numpy scikit-learn mlflow fastapi uvicorn pydantic pytest faker
-
-      - name: Run data generation
-        run: python src/generate_data.py
-
-      - name: Run PHI anonymization
-        run: python src/anonymize.py
-
-      - name: Run feature engineering
-        run: python src/features.py
-
-      - name: Run data validation
-        run: python src/validate.py
-
-      - name: Build Docker image
-        run: docker build -t healthcare-risk-api -f api/Dockerfile .
-
-      - name: Verify Docker image built
-        run: docker images | grep healthcare-risk-api
+          docker run -d --name risk-api -p 8000:8000 healthcare-risk-api
+          for attempt in $(seq 1 30); do
+            if curl --fail http://localhost:8000/health; then exit 0; fi
+            sleep 2
+          done
+          docker logs risk-api
+          exit 1
+      - uses: actions/upload-artifact@v4
+        with:
+          name: synthetic-evaluation
+          path: reports/synthetic_evaluation.json
