@@ -67,12 +67,32 @@ class MemberData(BaseModel):
     has_diabetes: int = Field(ge=0, le=1)
     has_hypertension: int = Field(ge=0, le=1)
     has_copd: int = Field(ge=0, le=1)
-    high_er_usage: int = Field(ge=0, le=1)
-    high_claim_frequency: int = Field(ge=0, le=1)
-    high_cost_member: int = Field(ge=0, le=1)
-    multiple_chronic: int = Field(ge=0, le=1)
-    high_medication_burden: int = Field(ge=0, le=1)
-    risk_indicator: int = Field(ge=0)
+
+
+MODEL_FEATURES = [
+    "age", "gender", "claim_count_90days", "er_visits_6months",
+    "total_claim_cost", "medication_count", "has_diabetes",
+    "has_hypertension", "has_copd", "high_er_usage",
+    "high_claim_frequency", "high_cost_member", "multiple_chronic",
+    "high_medication_burden", "risk_indicator",
+]
+
+
+def model_input(data: MemberData) -> pd.DataFrame:
+    """Compute derived features server-side to prevent inconsistent inputs."""
+    row = data.model_dump()
+    row["high_er_usage"] = int(data.er_visits_6months > 2)
+    row["high_claim_frequency"] = int(data.claim_count_90days > 10)
+    row["high_cost_member"] = int(data.total_claim_cost > 50_000)
+    row["multiple_chronic"] = int(
+        data.has_diabetes + data.has_hypertension + data.has_copd > 1
+    )
+    row["high_medication_burden"] = int(data.medication_count > 6)
+    row["risk_indicator"] = sum(row[name] for name in (
+        "high_er_usage", "high_claim_frequency", "high_cost_member",
+        "multiple_chronic", "high_medication_burden",
+    ))
+    return pd.DataFrame([row], columns=MODEL_FEATURES)
 
 @app.get("/")
 def home():
@@ -88,7 +108,7 @@ def predict(data: MemberData):
 
     start_time = time.time()
 
-    input_df = pd.DataFrame([data.model_dump()])
+    input_df = model_input(data)
     risk_score = model.predict_proba(input_df)[0][1]
     risk_label = int(model.predict(input_df)[0])
 

@@ -7,11 +7,5 @@
   "medication_count": 2,
   "has_diabetes": 0,
   "has_hypertension": 0,
-  "has_copd": 0,
-  "high_er_usage": 0,
-  "high_claim_frequency": 0,
-  "high_cost_member": 0,
-  "multiple_chronic": 0,
-  "high_medication_burden": 0,
-  "risk_indicator": 0
+  "has_copd": 0
 }
