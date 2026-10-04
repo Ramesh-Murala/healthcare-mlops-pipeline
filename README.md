@@ -31,7 +31,7 @@ flowchart TD
 
 ![Captured request and response replay](docs/assets/api-demo.gif)
 
-This GIF renders actual captured JSON as an animated transcript; it is not a screen recording. POST `/predict` using FastAPI TestClient and the locally trained synthetic random-forest baseline. The request supplies precomputed features. Any `latency_ms` is a single local sample, not a performance benchmark.
+This GIF renders actual captured JSON as an animated transcript; it is not a screen recording. POST `/predict` using FastAPI TestClient and the locally trained synthetic random-forest baseline. The service derives risk flags from the raw request fields. Any `latency_ms` is a single local sample, not a performance benchmark.
 
 ### Evaluation results
 
@@ -58,13 +58,7 @@ This GIF renders actual captured JSON as an animated transcript; it is not a scr
   "medication_count": 2,
   "has_diabetes": 0,
   "has_hypertension": 0,
-  "has_copd": 0,
-  "high_er_usage": 0,
-  "high_claim_frequency": 0,
-  "high_cost_member": 0,
-  "multiple_chronic": 0,
-  "high_medication_burden": 0,
-  "risk_indicator": 0
+  "has_copd": 0
 }
 ```
 
@@ -99,7 +93,7 @@ The renderer needs DejaVu Sans Mono (on Debian/Ubuntu: `fonts-dejavu-core`). [Ca
 | Transformation | Hash synthetic member IDs, remove ZIP codes, derive risk features |
 | Training | Six model configurations evaluated against the same synthetic risk label |
 | Tracking | Local MLflow experiment, metrics, model artifacts |
-| Serving | FastAPI `/predict`, `/health`, `/metrics` |
+| Serving | FastAPI `/predict`, server-side feature derivation, `/health`, `/metrics` |
 | Monitoring | Prediction count and latency metrics; a Prometheus scrape configuration |
 | Batch scoring | Sequential Python tasks, dated CSV output, JSON run summary |
 | CI | Fresh data generation, training, batch run, tests, Docker build and health check |
@@ -144,6 +138,6 @@ Open `http://localhost:8000/docs`. Generate the model and build the image with m
 - The batch script is manually executable; there is no deployed Airflow scheduler or nightly schedule.
 - Prometheus metrics are implemented. Grafana dashboards, drift detection, alerts, cloud deployment, and model promotion are not included.
 - Hashing IDs and dropping a column demonstrate transformations; they do not establish anonymization or regulatory compliance.
-- The API accepts precomputed features. A production service needs shared feature computation, consistency checks, authentication, model lineage, and robust multi-worker monitoring.
+- The API derives its five risk flags and aggregate indicator from raw request fields. A production service still needs a versioned shared feature package, authentication, model lineage, and robust multi-worker monitoring.
 
 Generated databases, model binaries, logs, caches, and data are excluded from Git. Recreate them with the commands above; earlier versions remain in Git history.
