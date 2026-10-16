@@ -30,6 +30,32 @@ def test_batch_failure_propagates_to_scheduler(monkeypatch):
         pipeline.run_pipeline()
 
 
+@pytest.mark.parametrize("column", ["age", "total_claim_cost", "er_visits_6months", "risk_label"])
+@pytest.mark.parametrize("value", [float("nan"), float("inf"), float("-inf"), "not-a-number"])
+def test_data_validation_rejects_non_finite_or_nonnumeric_values(tmp_path, column, value):
+    validate = load("src/validate.py", "validation_numeric")
+    row = dict(member_id="synthetic", age=40, total_claim_cost=0,
+               er_visits_6months=0, risk_label=0)
+    row[column] = value
+    path = tmp_path / "invalid.csv"
+    pd.DataFrame([row]).to_csv(path, index=False)
+
+    with pytest.raises(ValueError, match="numeric values must be finite"):
+        validate.validate_data(path)
+
+
+def test_data_validation_accepts_finite_boundary_values(tmp_path):
+    validate = load("src/validate.py", "validation_boundaries")
+    path = tmp_path / "valid.csv"
+    pd.DataFrame([
+        dict(member_id="synthetic-1", age=18, total_claim_cost=0,
+             er_visits_6months=0, risk_label=0),
+        dict(member_id="synthetic-2", age=85, total_claim_cost=50_000,
+             er_visits_6months=3, risk_label=1),
+    ]).to_csv(path, index=False)
+    validate.validate_data(path)
+
+
 def test_api_predict_and_metrics():
     api = load("api/app.py", "risk_api")
     df = pd.read_csv("data/processed/member_claims_featured.csv")
