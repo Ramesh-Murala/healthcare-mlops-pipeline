@@ -1,11 +1,25 @@
 import pandas as pd
-import os
+import numpy as np
 
 def validate_data(input_path):
     print("Starting data validation...")
 
     df = pd.read_csv(input_path)
     errors = []
+
+    # Comparisons with NaN are false, and positive infinity passes a >= 0
+    # check. Reject malformed numeric values before applying range rules.
+    numeric_columns = ["age", "total_claim_cost", "er_visits_6months", "risk_label"]
+    for column in numeric_columns:
+        values = pd.to_numeric(df[column], errors="coerce")
+        invalid_count = int((~np.isfinite(values)).sum())
+        if invalid_count:
+            errors.append(f"Invalid numeric values in {column}: {invalid_count} records")
+        df[column] = values
+    if errors:
+        for error in errors:
+            print(error)
+        raise ValueError("Data validation failed — numeric values must be finite.")
 
     # Check 1 - Age must be between 18 and 85
     invalid_age = df[(df["age"] < 18) | (df["age"] > 85)]
