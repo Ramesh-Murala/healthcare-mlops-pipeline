@@ -134,7 +134,7 @@ Open `http://localhost:8000/docs`. Generate the model and build the image with m
 ## Evidence and limitations
 
 - [Synthetic evaluation](reports/synthetic_evaluation.json) records the split, configurations, and scores. Dependency versions can affect exact results.
-- Validation rejects nonnumeric, missing, or infinite values in age, claim cost, ER visits, and the risk label before applying range rules. Tests cover these failures, valid boundary values, prediction/metrics endpoints, and propagation of batch failures to schedulers.
+- Standalone validation rejects nonnumeric, missing, or infinite values in age, claim cost, ER visits, and the risk label before applying range rules. The batch entry point independently validates every numeric input used by feature engineering or inference before transforming records. Tests cover these failures, valid boundary values, prediction/metrics endpoints, and propagation of batch failures to schedulers.
 - The batch script is manually executable; there is no deployed Airflow scheduler or nightly schedule.
 - Prometheus metrics are implemented. Grafana dashboards, drift detection, alerts, cloud deployment, and model promotion are not included.
 - Hashing IDs and dropping a column demonstrate transformations; they do not establish anonymization or regulatory compliance.
