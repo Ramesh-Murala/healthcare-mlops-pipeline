@@ -30,6 +30,51 @@ def test_batch_failure_propagates_to_scheduler(monkeypatch):
         pipeline.run_pipeline()
 
 
+def batch_row():
+    return dict(
+        member_id="synthetic", age=40, gender="F", zip_code="00000",
+        diagnosis_codes="", claim_count_90days=2, er_visits_6months=0,
+        total_claim_cost=1_000, medication_count=1, has_diabetes=0,
+        has_hypertension=0, has_copd=0, risk_label=0,
+    )
+
+
+@pytest.mark.parametrize("column", [
+    "age", "claim_count_90days", "er_visits_6months", "total_claim_cost",
+    "medication_count", "has_diabetes", "has_hypertension", "has_copd",
+    "risk_label",
+])
+@pytest.mark.parametrize("value", [float("nan"), float("inf"), float("-inf"), "not-a-number"])
+def test_batch_validation_rejects_invalid_numeric_model_inputs(column, value):
+    pipeline = load("pipelines/nightly_pipeline.py", f"nightly_invalid_{column}")
+    row = batch_row()
+    row[column] = value
+
+    with pytest.raises(ValueError, match="numeric model inputs must be present and finite"):
+        pipeline.task_validate(pd.DataFrame([row]))
+
+
+def test_batch_validation_coerces_finite_numeric_strings():
+    pipeline = load("pipelines/nightly_pipeline.py", "nightly_numeric_strings")
+    row = batch_row()
+    row.update(age="40", claim_count_90days="2", total_claim_cost="1000.50")
+
+    validated = pipeline.task_validate(pd.DataFrame([row]))
+
+    assert validated.loc[0, "age"] == 40
+    assert validated.loc[0, "claim_count_90days"] == 2
+    assert validated.loc[0, "total_claim_cost"] == 1000.5
+
+
+def test_batch_validation_rejects_missing_numeric_model_input():
+    pipeline = load("pipelines/nightly_pipeline.py", "nightly_missing_column")
+    row = batch_row()
+    row.pop("medication_count")
+
+    with pytest.raises(ValueError, match="numeric model inputs must be present and finite"):
+        pipeline.task_validate(pd.DataFrame([row]))
+
+
 @pytest.mark.parametrize("column", ["age", "total_claim_cost", "er_visits_6months", "risk_label"])
 @pytest.mark.parametrize("value", [float("nan"), float("inf"), float("-inf"), "not-a-number"])
 def test_data_validation_rejects_non_finite_or_nonnumeric_values(tmp_path, column, value):

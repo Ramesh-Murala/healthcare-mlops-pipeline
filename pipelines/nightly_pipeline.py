@@ -1,4 +1,5 @@
 import pandas as pd
+import numpy as np
 import pickle
 import logging
 import os
@@ -14,6 +15,12 @@ logging.basicConfig(
 )
 
 print("=" * 60)
+
+BATCH_NUMERIC_COLUMNS = (
+    "age", "claim_count_90days", "er_visits_6months", "total_claim_cost",
+    "medication_count", "has_diabetes", "has_hypertension", "has_copd",
+    "risk_label",
+)
 print(f"  Synthetic Risk Scoring Pipeline")
 print(f"  Run Date: {datetime.now().strftime('%Y-%m-%d %H:%M:%S')}")
 print("=" * 60)
@@ -56,6 +63,25 @@ def task_validate(df):
     logging.info("Task 3 started - Data validation")
     
     errors = []
+
+    # Comparisons do not catch NaN, and positive infinity passes nonnegative
+    # checks. Validate every numeric input used by feature engineering or the
+    # model before transforming the batch.
+    for column in BATCH_NUMERIC_COLUMNS:
+        if column not in df.columns:
+            errors.append(f"Missing required numeric column: {column}")
+            continue
+        values = pd.to_numeric(df[column], errors="coerce")
+        invalid_count = int((~np.isfinite(values)).sum())
+        if invalid_count:
+            errors.append(f"Invalid numeric values in {column}: {invalid_count} records")
+        df[column] = values
+
+    if errors:
+        logging.error(f"Validation failed: {errors}")
+        raise ValueError(
+            "Data validation failed: numeric model inputs must be present and finite"
+        )
     
     if df[(df["age"] < 18) | (df["age"] > 85)].shape[0] > 0:
         errors.append("Invalid age values found")
