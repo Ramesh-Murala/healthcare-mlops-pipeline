@@ -75,6 +75,38 @@ def test_batch_validation_rejects_missing_numeric_model_input():
         pipeline.task_validate(pd.DataFrame([row]))
 
 
+@pytest.mark.parametrize(("column", "value"), [
+    ("age", 17),
+    ("age", 85.5),
+    ("claim_count_90days", -1),
+    ("claim_count_90days", 2.5),
+    ("er_visits_6months", -1),
+    ("medication_count", 1.5),
+    ("has_diabetes", 2),
+    ("has_hypertension", -1),
+    ("has_copd", 0.5),
+    ("risk_label", 2),
+    ("total_claim_cost", -0.01),
+    ("gender", "unknown"),
+])
+def test_batch_validation_rejects_values_outside_model_schema(column, value):
+    pipeline = load("pipelines/nightly_pipeline.py", f"nightly_schema_{column}")
+    row = batch_row()
+    row[column] = value
+
+    with pytest.raises(ValueError, match="Data validation failed"):
+        pipeline.task_validate(pd.DataFrame([row]))
+
+
+def test_batch_validation_rejects_missing_gender():
+    pipeline = load("pipelines/nightly_pipeline.py", "nightly_missing_gender")
+    row = batch_row()
+    row.pop("gender")
+
+    with pytest.raises(ValueError, match="Missing required categorical column: gender"):
+        pipeline.task_validate(pd.DataFrame([row]))
+
+
 @pytest.mark.parametrize("column", ["age", "total_claim_cost", "er_visits_6months", "risk_label"])
 @pytest.mark.parametrize("value", [float("nan"), float("inf"), float("-inf"), "not-a-number"])
 def test_data_validation_rejects_non_finite_or_nonnumeric_values(tmp_path, column, value):
