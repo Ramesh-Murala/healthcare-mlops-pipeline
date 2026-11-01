@@ -21,6 +21,12 @@ BATCH_NUMERIC_COLUMNS = (
     "medication_count", "has_diabetes", "has_hypertension", "has_copd",
     "risk_label",
 )
+BATCH_COUNT_COLUMNS = (
+    "claim_count_90days", "er_visits_6months", "medication_count",
+)
+BATCH_BINARY_COLUMNS = (
+    "has_diabetes", "has_hypertension", "has_copd", "risk_label",
+)
 print(f"  Synthetic Risk Scoring Pipeline")
 print(f"  Run Date: {datetime.now().strftime('%Y-%m-%d %H:%M:%S')}")
 print("=" * 60)
@@ -83,12 +89,32 @@ def task_validate(df):
             "Data validation failed: numeric model inputs must be present and finite"
         )
     
-    if df[(df["age"] < 18) | (df["age"] > 85)].shape[0] > 0:
-        errors.append("Invalid age values found")
+    invalid_age = (~df["age"].between(18, 85)) | (df["age"] % 1 != 0)
+    if invalid_age.any():
+        errors.append(f"Invalid age values: {int(invalid_age.sum())} records")
     if df[df["total_claim_cost"] < 0].shape[0] > 0:
         errors.append("Negative claim costs found")
-    if df[df["er_visits_6months"] < 0].shape[0] > 0:
-        errors.append("Negative ER visits found")
+    for column in BATCH_COUNT_COLUMNS:
+        invalid = (df[column] < 0) | (df[column] % 1 != 0)
+        if invalid.any():
+            errors.append(
+                f"Invalid nonnegative integer values in {column}: "
+                f"{int(invalid.sum())} records"
+            )
+    for column in BATCH_BINARY_COLUMNS:
+        invalid = ~df[column].isin([0, 1])
+        if invalid.any():
+            errors.append(
+                f"Invalid binary values in {column}: {int(invalid.sum())} records"
+            )
+    if "gender" not in df.columns:
+        errors.append("Missing required categorical column: gender")
+    else:
+        invalid_gender = ~df["gender"].isin(["M", "F"])
+        if invalid_gender.any():
+            errors.append(
+                f"Invalid gender values: {int(invalid_gender.sum())} records"
+            )
     if any(df[key].isnull().any() for key in ["member_id", "age", "total_claim_cost"]):
         errors.append("Missing values found")
 
