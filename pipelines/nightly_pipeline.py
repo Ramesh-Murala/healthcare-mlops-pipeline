@@ -164,6 +164,7 @@ def task_feature_engineering(df):
 def task_run_inference(df):
     print("\n[Task 5/6] Running batch inference on all members...")
     logging.info("Task 5 started - Batch inference")
+    df = df.copy()
     
     with open("api/model.pkl", "rb") as f:
         model = pickle.load(f)
@@ -178,11 +179,15 @@ def task_run_inference(df):
     
     X = df[feature_cols]
     df["risk_score"] = model.predict_proba(X)[:, 1].round(4)
-    df["risk_label"] = model.predict(X)
-    df["risk_category"] = df["risk_label"].map({1: "High Risk", 0: "Low Risk"})
+    # Keep the observed synthetic label intact so prediction errors remain
+    # auditable in the scored output instead of being overwritten.
+    df["predicted_risk_label"] = model.predict(X)
+    df["risk_category"] = df["predicted_risk_label"].map(
+        {1: "High Risk", 0: "Low Risk"}
+    )
     
-    high_risk = df[df["risk_label"] == 1]
-    low_risk = df[df["risk_label"] == 0]
+    high_risk = df[df["predicted_risk_label"] == 1]
+    low_risk = df[df["predicted_risk_label"] == 0]
     
     logging.info(f"Inference complete - High risk: {len(high_risk)}, Low risk: {len(low_risk)}")
     print(f"  ✅ Inference complete")
@@ -201,8 +206,8 @@ def task_save_and_notify(df):
     output_path = f"data/processed/risk_scores_{datetime.now().strftime('%Y%m%d')}.csv"
     df.to_csv(output_path, index=False)
     
-    high_risk_count = df[df["risk_label"] == 1].shape[0]
-    low_risk_count = df[df["risk_label"] == 0].shape[0]
+    high_risk_count = df[df["predicted_risk_label"] == 1].shape[0]
+    low_risk_count = df[df["predicted_risk_label"] == 0].shape[0]
     avg_score = df["risk_score"].mean().round(4)
     
     summary = {
