@@ -1,6 +1,8 @@
 import importlib.util
+import io
 from pathlib import Path
 
+import numpy as np
 import pandas as pd
 import pytest
 from fastapi.testclient import TestClient
@@ -105,6 +107,38 @@ def test_batch_validation_rejects_missing_gender():
 
     with pytest.raises(ValueError, match="Missing required categorical column: gender"):
         pipeline.task_validate(pd.DataFrame([row]))
+
+
+def test_batch_inference_preserves_ground_truth_label(monkeypatch):
+    pipeline = load("pipelines/nightly_pipeline.py", "nightly_labels")
+
+    class DisagreeingModel:
+        def predict_proba(self, features):
+            assert list(features.columns) == [
+                "age", "gender", "claim_count_90days", "er_visits_6months",
+                "total_claim_cost", "medication_count", "has_diabetes",
+                "has_hypertension", "has_copd", "high_er_usage",
+                "high_claim_frequency", "high_cost_member", "multiple_chronic",
+                "high_medication_burden", "risk_indicator",
+            ]
+            return np.array([[0.1, 0.9], [0.8, 0.2]])
+
+        def predict(self, features):
+            return np.array([1, 0])
+
+    first = batch_row()
+    second = {**batch_row(), "member_id": "synthetic-2", "risk_label": 1}
+    featured = pipeline.task_feature_engineering(
+        pipeline.task_validate(pd.DataFrame([first, second]))
+    )
+    monkeypatch.setattr("builtins.open", lambda *args, **kwargs: io.BytesIO())
+    monkeypatch.setattr(pipeline.pickle, "load", lambda _: DisagreeingModel())
+
+    scored = pipeline.task_run_inference(featured)
+
+    assert scored["risk_label"].tolist() == [0, 1]
+    assert scored["predicted_risk_label"].tolist() == [1, 0]
+    assert scored["risk_category"].tolist() == ["High Risk", "Low Risk"]
 
 
 @pytest.mark.parametrize("column", ["age", "total_claim_cost", "er_visits_6months", "risk_label"])

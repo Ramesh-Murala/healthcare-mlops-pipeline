@@ -95,7 +95,7 @@ The renderer needs DejaVu Sans Mono (on Debian/Ubuntu: `fonts-dejavu-core`). [Ca
 | Tracking | Local MLflow experiment, metrics, model artifacts |
 | Serving | FastAPI `/predict`, server-side feature derivation, `/health`, `/metrics` |
 | Monitoring | Prediction count and latency metrics; a Prometheus scrape configuration |
-| Batch scoring | Sequential Python tasks, dated CSV output, JSON run summary |
+| Batch scoring | Sequential Python tasks, dated CSV output with observed and predicted labels, JSON run summary |
 | CI | Fresh data generation, training, batch run, tests, Docker build and health check |
 
 The six configurations do not represent six independently validated clinical use cases. The target is generated from rules in `src/generate_data.py`; good held-out scores mainly show that models approximate those rules.
@@ -136,6 +136,7 @@ Open `http://localhost:8000/docs`. Generate the model and build the image with m
 - [Synthetic evaluation](reports/synthetic_evaluation.json) records the split, configurations, and scores. Dependency versions can affect exact results.
 - Standalone validation rejects nonnumeric, missing, or infinite values in age, claim cost, ER visits, and the risk label before applying range rules. The batch entry point independently validates every model input before transformation, including finite numeric values, age and nonnegative-count constraints, binary flags and labels, and supported gender codes. Tests cover these failures, valid boundary values, prediction/metrics endpoints, and propagation of batch failures to schedulers.
 - The batch script is manually executable; there is no deployed Airflow scheduler or nightly schedule.
+- Batch output preserves the synthetic ground-truth `risk_label` and writes model decisions separately as `predicted_risk_label`, so disagreements remain available for error analysis.
 - Prometheus metrics are implemented. Grafana dashboards, drift detection, alerts, cloud deployment, and model promotion are not included.
 - Hashing IDs and dropping a column demonstrate transformations; they do not establish anonymization or regulatory compliance.
 - The API derives its five risk flags and aggregate indicator from raw request fields. A production service still needs a versioned shared feature package, authentication, model lineage, and robust multi-worker monitoring.
